@@ -1,37 +1,50 @@
 #
-# Cookbook:: ossec
+# Cookbook Name:: cartera_ossec
 # Recipe:: server
 #
-# Copyright:: 2010-2017, Chef Software, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# Copyright (c) 2016 Cartera Commerce, Inc., All Rights Reserved.
 
-include_recipe 'ossec::install_server'
+include_recipe 'yum-epel'
+
+iptables_rule 'iptables_ossec' do
+  action :enable
+end
+
+%w(perl-Digest-MD5).each do |pkg|
+  package pkg do
+    action :install
+  end
+end
+
+include_recipe 'install_server'
 
 ssh_hosts = []
 
 search_string = 'ossec:[* TO *]'
-search_string << " AND chef_environment:#{node['ossec']['server_env']}" if node['ossec']['server_env']
-search_string << " AND NOT role:#{node['ossec']['server_role']} AND NOT fqdn:#{node['fqdn']}"
+search_string << " AND policy_group:#{node['policy_group']}" unless node['policy_group'].nil?
+search_string << " AND (-policy_name:#{node['ossec']['server_policy']})" unless node['ossec']['server_policy'].nil?
+search_string << " AND (-fqdn:#{node['fqdn']})"
 
 search(:node, search_string) do |n|
   ssh_hosts << n['ipaddress'] if n['keys']
 
+# Create the agent key
   execute "#{node['ossec']['agent_manager']} -a --ip #{n['ipaddress']} -n #{n['fqdn'][0..31]}" do
     not_if "grep '#{n['fqdn'][0..31]} #{n['ipaddress']}' #{node['ossec']['dir']}/etc/client.keys"
   end
 end
+
+# begin
+#   t = resources(:template => "/usr/local/bin/dist-ossec-keys.sh")
+#   t.source "dist-ossec-keys-new.sh.erb"
+#   t.cookbook "cartera_ossec"
+#   t.variables(:ossec_dir => node['ossec']['dir'],
+#     ssh_hosts: ssh_hosts.sort
+#   )
+#   t.not_if { ssh_hosts.empty? }
+#     rescue Chef::Exceptions::ResourceNotFound
+#     Chef::Log.warn "could not find template /usr/local/bin/dist-ossec-keys.sh to modify"
+# end
 
 template '/usr/local/bin/dist-ossec-keys.sh' do
   source 'dist-ossec-keys.sh.erb'
@@ -64,7 +77,18 @@ template "#{node['ossec']['dir']}/.ssh/id_rsa" do
   variables(key: ossec_key['privkey'])
 end
 
-include_recipe 'ossec::common'
+#
+# Remove the use_geoip attribute, so that it doesn't get inserted into
+# the ossec.conf configuration file. Ossec fails to start if it's
+# in the configuration file.
+#
+ruby_block 'delete_unsupported_use_geoip' do
+  block do
+    node.rm('ossec', 'conf', 'server', 'alerts', 'use_geoip')
+  end
+end
+
+include_recipe 'common'
 
 cron 'distribute-ossec-keys' do
   minute '0'

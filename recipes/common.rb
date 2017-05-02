@@ -48,7 +48,7 @@ file "#{node['ossec']['dir']}/etc/ossec.conf" do
   group 'ossec'
   mode '0440'
   manage_symlink_source true
-  notifies :restart, 'service[ossec]'
+  notifies :restart, 'service[ossec-agent.target]'
 
   content lazy {
     # Merge the "typed" attributes over the "all" attributes.
@@ -63,7 +63,7 @@ file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
   owner 'root'
   group 'ossec'
   mode '0440'
-  notifies :restart, 'service[ossec]'
+  notifies :restart, 'service[ossec-agent.target]'
 
   # Even if agent.cont is not appropriate for this kind of
   # installation, we need to create an empty file instead of deleting
@@ -80,29 +80,4 @@ file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
       ''
     end
   }
-end
-
-# Both the RPM and DEB packages enable and start the service
-# immediately after installation, which isn't helpful. An empty
-# client.keys file will cause a server not to listen and an agent to
-# abort immediately. Explicitly stopping the service here after
-# installation allows Chef to start it when client.keys has content.
-service 'stop ossec' do # ~FC037
-  service_name platform_family?('debian') ? 'ossec' : 'ossec-hids'
-  action :nothing
-
-  %w( disable stop ).each do |action|
-    subscribes action, 'package[ossec]', :immediately
-  end
-end
-
-service 'ossec' do
-  service_name platform_family?('debian') ? 'ossec' : 'ossec-hids'
-  supports status: true, restart: true
-  action [:enable, :start]
-
-  not_if do
-    (node['ossec']['install_type'] != 'local' && !File.size?("#{node['ossec']['dir']}/etc/client.keys")) ||
-      (node['ossec']['install_type'] == 'agent' && node['ossec']['agent_server_ip'].nil?)
-  end
 end

@@ -1,0 +1,8 @@
+[Unit]
+Description=OSSEC HIDS agent
+After=network.target 
+Requires=ossec-syscheckd.service
+Requires=ossec-agentd.service
+
+[Install]
+WantedBy=multi-user.target
