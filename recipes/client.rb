@@ -112,7 +112,7 @@ cookbook_file '/etc/systemd/system/ossec-agent.target' do
 end
 
 systemd_unit 'ossec-agent.target' do
-  action [:enable]
+  action [:start, :enable]
 end
 
 cookbook_file '/etc/systemd/system/ossec-agentd.service' do
@@ -123,7 +123,7 @@ cookbook_file '/etc/systemd/system/ossec-agentd.service' do
 end
 
 systemd_unit 'ossec-agentd.service' do
-  action [:enable]
+  action [:start, :enable]
 end
 
 cookbook_file '/etc/systemd/system/ossec-syscheckd.service' do
@@ -134,7 +134,7 @@ cookbook_file '/etc/systemd/system/ossec-syscheckd.service' do
 end
 
 systemd_unit 'ossec-syscheckd.service' do
-  action [:enable]
+  action [:start, :enable]
 end
 
 include_recipe 'ossec::common'

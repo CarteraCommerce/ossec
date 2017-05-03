@@ -48,7 +48,8 @@ file "#{node['ossec']['dir']}/etc/ossec.conf" do
   group 'ossec'
   mode '0440'
   manage_symlink_source true
-  notifies :restart, 'service[ossec-agent.target]'
+  notifies :restart, 'service[ossec-agentd]'
+  notifies :restart, 'service[ossec-syscheckd]'
 
   content lazy {
     # Merge the "typed" attributes over the "all" attributes.
@@ -63,7 +64,8 @@ file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
   owner 'root'
   group 'ossec'
   mode '0440'
-  notifies :restart, 'service[ossec-agent.target]'
+  notifies :restart, 'service[ossec-agentd]'
+  notifies :restart, 'service[ossec-syscheckd]'
 
   # Even if agent.cont is not appropriate for this kind of
   # installation, we need to create an empty file instead of deleting
