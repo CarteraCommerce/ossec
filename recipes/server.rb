@@ -16,7 +16,7 @@ end
   end
 end
 
-include_recipe 'install_server'
+include_recipe 'ossec::install_server'
 
 ssh_hosts = []
 
@@ -88,7 +88,7 @@ ruby_block 'delete_unsupported_use_geoip' do
   end
 end
 
-include_recipe 'common'
+include_recipe 'ossec::common'
 
 cron 'distribute-ossec-keys' do
   minute '0'

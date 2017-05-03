@@ -45,7 +45,7 @@ end
 
 node.set['ossec']['agent_server_ip'] = ossec_server.first
 
-include_recipe 'install_agent'
+include_recipe 'ossec::install_agent'
 
 dbag_name = node['ossec']['data_bag']['name']
 dbag_item = node['ossec']['data_bag']['ssh']
@@ -137,4 +137,4 @@ systemd_unit 'ossec-syscheckd.service' do
   action [:enable]
 end
 
-include_recipe 'common'
+include_recipe 'ossec::common'
