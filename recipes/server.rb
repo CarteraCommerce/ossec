@@ -95,3 +95,47 @@ cron 'distribute-ossec-keys' do
   command '/usr/local/bin/dist-ossec-keys.sh'
   only_if { ::File.exist?("#{node['ossec']['dir']}/etc/client.keys") }
 end
+
+cookbook_file '/etc/systemd/system/ossec-server.target' do
+  source 'server/ossec-server.target'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+systemd_unit 'ossec-server.target' do
+  action [:start, :enable]
+end
+
+cookbook_file '/etc/systemd/system/ossec-csyslog.service' do
+  source 'server/ossec-csyslog.service'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+service 'ossec-csyslog' do
+  action [:start, :enable]
+end
+
+cookbook_file '/etc/systemd/system/ossec-monitord.service' do
+  source 'server/ossec-monitord.service'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+service 'ossec-monitord' do
+  action [:start, :enable]
+end
+
+cookbook_file '/etc/systemd/system/ossec-remoted.service' do
+  source 'server/ossec-remoted.service'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+service 'ossec-remoted' do
+  action [:start, :enable]
+end
