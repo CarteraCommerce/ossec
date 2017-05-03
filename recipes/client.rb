@@ -122,7 +122,7 @@ cookbook_file '/etc/systemd/system/ossec-agentd.service' do
   group 'root'
 end
 
-systemd_unit 'ossec-agentd.service' do
+service 'ossec-agentd' do
   action [:start, :enable]
 end
 
@@ -133,7 +133,7 @@ cookbook_file '/etc/systemd/system/ossec-syscheckd.service' do
   group 'root'
 end
 
-systemd_unit 'ossec-syscheckd.service' do
+service 'ossec-syscheckd' do
   action [:start, :enable]
 end
 
