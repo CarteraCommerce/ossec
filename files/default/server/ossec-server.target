@@ -2,6 +2,7 @@
 Description=OSSEC HIDS server
 After=network.target 
 Wants=ossec-csyslog.service
+Requires=ossec-analysisd.service
 Requires=ossec-remoted.service
 Requires=ossec-monitord.service
 

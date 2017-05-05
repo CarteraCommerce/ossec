@@ -182,6 +182,17 @@ service 'ossec-csyslog' do
   action [:enable]
 end
 
+cookbook_file '/etc/systemd/system/ossec-analysisd.service' do
+  source 'server/ossec-analysisd.service'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+service 'ossec-analysisd' do
+  action [:enable]
+end
+
 cookbook_file '/etc/systemd/system/ossec-monitord.service' do
   source 'server/ossec-monitord.service'
   mode 0644
