@@ -34,18 +34,6 @@ search(:node, search_string) do |n|
   end
 end
 
-# begin
-#   t = resources(:template => "/usr/local/bin/dist-ossec-keys.sh")
-#   t.source "dist-ossec-keys-new.sh.erb"
-#   t.cookbook "cartera_ossec"
-#   t.variables(:ossec_dir => node['ossec']['dir'],
-#     ssh_hosts: ssh_hosts.sort
-#   )
-#   t.not_if { ssh_hosts.empty? }
-#     rescue Chef::Exceptions::ResourceNotFound
-#     Chef::Log.warn "could not find template /usr/local/bin/dist-ossec-keys.sh to modify"
-# end
-
 template '/usr/local/bin/dist-ossec-keys.sh' do
   source 'dist-ossec-keys.sh.erb'
   owner 'root'
@@ -86,6 +74,15 @@ ruby_block 'delete_unsupported_use_geoip' do
   block do
     node.rm('ossec', 'conf', 'server', 'alerts', 'use_geoip')
   end
+end
+
+# Disable the System V init that's installed by the RPM
+# We're going to use systemd instead
+service "ossec-hids" do
+  action [:disable, :stop]
+end
+file '/etc/rc.d/init.d/ossec-hids' do
+  action :delete
 end
 
 ruby_block 'ossec install_type' do # ~FC014
