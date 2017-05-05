@@ -83,3 +83,25 @@ file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
     end
   }
 end
+
+cookbook_file '/etc/systemd/system/ossec-agentd.service' do
+  source 'agent/ossec-agentd.service'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+service 'ossec-agentd' do
+  action [:start, :enable]
+end
+
+cookbook_file '/etc/systemd/system/ossec-syscheckd.service' do
+  source 'agent/ossec-syscheckd.service'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+service 'ossec-syscheckd' do
+  action [:start, :enable]
+end
