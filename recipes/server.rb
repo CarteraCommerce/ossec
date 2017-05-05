@@ -119,7 +119,6 @@ file "#{node['ossec']['dir']}/etc/ossec.conf" do
   group 'ossec'
   mode '0440'
   manage_symlink_source true
-  notifies :restart, 'service[ossec-server]'
   notifies :restart, 'service[ossec-csyslog]'
   notifies :restart, 'service[ossec-monitord]'
   notifies :restart, 'service[ossec-remoted]'
@@ -137,7 +136,6 @@ file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
   owner 'root'
   group 'ossec'
   mode '0440'
-  notifies :restart, 'service[ossec-server]'
   notifies :restart, 'service[ossec-csyslog]'
   notifies :restart, 'service[ossec-monitord]'
   notifies :restart, 'service[ossec-remoted]'
