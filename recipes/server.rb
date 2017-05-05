@@ -171,17 +171,6 @@ end
 # will continuously try to restart until the client key is
 # installed. Using systemd for the server stuff to be consistent
 # with the client setup.
-cookbook_file '/etc/systemd/system/ossec-server.target' do
-  source 'server/ossec-server.target'
-  mode 0644
-  owner 'root'
-  group 'root'
-end
-
-systemd_unit 'ossec-server.target' do
-  action [:start, :enable]
-end
-
 cookbook_file '/etc/systemd/system/ossec-csyslog.service' do
   source 'server/ossec-csyslog.service'
   mode 0644
@@ -190,7 +179,7 @@ cookbook_file '/etc/systemd/system/ossec-csyslog.service' do
 end
 
 service 'ossec-csyslog' do
-  action [:start, :enable]
+  action [:enable]
 end
 
 cookbook_file '/etc/systemd/system/ossec-monitord.service' do
@@ -201,7 +190,7 @@ cookbook_file '/etc/systemd/system/ossec-monitord.service' do
 end
 
 service 'ossec-monitord' do
-  action [:start, :enable]
+  action [:enable]
 end
 
 cookbook_file '/etc/systemd/system/ossec-remoted.service' do
@@ -212,5 +201,16 @@ cookbook_file '/etc/systemd/system/ossec-remoted.service' do
 end
 
 service 'ossec-remoted' do
+  action [:enable]
+end
+
+cookbook_file '/etc/systemd/system/ossec-server.target' do
+  source 'server/ossec-server.target'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
+
+systemd_unit 'ossec-server.target' do
   action [:start, :enable]
 end
