@@ -88,7 +88,76 @@ ruby_block 'delete_unsupported_use_geoip' do
   end
 end
 
-include_recipe 'ossec::common'
+ruby_block 'ossec install_type' do # ~FC014
+  block do
+    if node['recipes'].include?('ossec::default')
+      type = 'local'
+    else
+      type = nil
+
+      File.open('/etc/ossec-init.conf') do |file|
+        file.each_line do |line|
+          if line =~ /^TYPE="([^"]+)"/
+            type = Regexp.last_match(1)
+            break
+          end
+        end
+      end
+    end
+
+    node.set['ossec']['install_type'] = type
+  end
+end
+
+# Gyoku renders the XML.
+chef_gem 'gyoku' do
+  compile_time false if respond_to?(:compile_time)
+end
+
+file "#{node['ossec']['dir']}/etc/ossec.conf" do
+  owner 'root'
+  group 'ossec'
+  mode '0440'
+  manage_symlink_source true
+  notifies :restart, 'service[ossec-server]'
+  notifies :restart, 'service[ossec-csyslog]'
+  notifies :restart, 'service[ossec-monitord]'
+  notifies :restart, 'service[ossec-remoted]'
+
+  content lazy {
+    # Merge the "typed" attributes over the "all" attributes.
+    all_conf = node['ossec']['conf']['all'].to_hash
+    type_conf = node['ossec']['conf'][node['ossec']['install_type']].to_hash
+    conf = Chef::Mixin::DeepMerge.deep_merge(type_conf, all_conf)
+    Chef::OSSEC::Helpers.ossec_to_xml('ossec_config' => conf)
+  }
+end
+
+file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
+  owner 'root'
+  group 'ossec'
+  mode '0440'
+  notifies :restart, 'service[ossec-server]'
+  notifies :restart, 'service[ossec-csyslog]'
+  notifies :restart, 'service[ossec-monitord]'
+  notifies :restart, 'service[ossec-remoted]'
+
+  # Even if agent.cont is not appropriate for this kind of
+  # installation, we need to create an empty file instead of deleting
+  # for two reasons. Firstly, install_type is set at converge time
+  # while action can't be lazy. Secondly, a subsequent package update
+  # would just replace the file.
+  action :create
+
+  content lazy {
+    if node['ossec']['install_type'] == 'server'
+      conf = node['ossec']['agent_conf'].to_a
+      Chef::OSSEC::Helpers.ossec_to_xml('agent_config' => conf)
+    else
+      ''
+    end
+  }
+end
 
 cron 'distribute-ossec-keys' do
   minute '0'
@@ -96,6 +165,14 @@ cron 'distribute-ossec-keys' do
   only_if { ::File.exist?("#{node['ossec']['dir']}/etc/client.keys") }
 end
 
+# Install systemd configuration
+# Using systemd because we need the Restart functionality.
+# OSSEC won't start without the client key. The client key
+# gets installed when chef runs on the ossec server. By using
+# systemd's restart, we can start the services and systemd
+# will continuously try to restart until the client key is
+# installed. Using systemd for the server stuff to be consistent
+# with the client setup.
 cookbook_file '/etc/systemd/system/ossec-server.target' do
   source 'server/ossec-server.target'
   mode 0644
