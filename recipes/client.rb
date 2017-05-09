@@ -31,18 +31,22 @@ end
   end
 end
 
+# Search for nodes that are OSSEC Servers by looking for nodes that use the OSSEC Server policy
+# node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC servers
 search_string = "policy_name:#{node['ossec']['server_policy']}" unless node['ossec']['server_policy'].nil?
 
-# search_string << " AND chef_environment:#{node['ossec']['server_env']}" unless node['ossec']['server_env'].nil?
-
 if Chef::Config.policy_name == node['ossec']['server_policy']
+  # The node running this recipe is an OSSEC Server
   ossec_server << node['ipaddress']
 else
   search(:node, search_string) do |n|
+    # Create a list of OSSEC Server IP Addresses
     ossec_server << n['ipaddress']
   end
 end
 
+# Set the agent_server_ip attribute to the first OSSEC Server in the list ossec_server
+# This will later get inserted into the agent's configuration file
 node.set['ossec']['agent_server_ip'] = ossec_server.first
 
 include_recipe 'ossec::install_agent'
@@ -92,7 +96,8 @@ file "#{node['ossec']['dir']}/etc/client.keys" do
 end
 
 # Disable the System V init that's installed by the RPM
-# We're going to use systemd instead
+# We're going to use systemd instead, because systemd
+# can auto-restart daemons that don't start the first time.
 service "ossec-hids" do
   action [:disable, :stop]
 end

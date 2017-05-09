@@ -20,20 +20,28 @@ include_recipe 'ossec::install_server'
 
 ssh_hosts = []
 
+# Search for nodes that have any ossec attibutes
 search_string = 'ossec:[* TO *]'
+# and that are in the same policy group as this OSSEC server
 search_string << " AND policy_group:#{node['policy_group']}" unless node['policy_group'].nil?
+# and that aren't using the OSSEC server policy (i.e. they aren't OSSEC servers)
+# node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC servers
 search_string << " AND (-policy_name:#{node['ossec']['server_policy']})" unless node['ossec']['server_policy'].nil?
+# and that aren't this node (the node that's running this recipe from chef-client)
 search_string << " AND (-fqdn:#{node['fqdn']})"
 
 search(:node, search_string) do |n|
+  # Create a list of the agent IP Addresses
+  # This list is inserted into dist-ossec-keys.sh, which distributes the agent keys
   ssh_hosts << n['ipaddress'] if n['keys']
 
-# Create the agent key
+  # Create the agent key
   execute "#{node['ossec']['agent_manager']} -a --ip #{n['ipaddress']} -n #{n['fqdn'][0..31]}" do
     not_if "grep '#{n['fqdn'][0..31]} #{n['ipaddress']}' #{node['ossec']['dir']}/etc/client.keys"
   end
 end
 
+# Create the script that distributes the OSSEC Agent keys
 template '/usr/local/bin/dist-ossec-keys.sh' do
   source 'dist-ossec-keys.sh.erb'
   owner 'root'
@@ -67,7 +75,7 @@ end
 
 #
 # Remove the use_geoip attribute, so that it doesn't get inserted into
-# the ossec.conf configuration file. Ossec fails to start if it's
+# the ossec.conf configuration file. OSSEC fails to start if it's
 # in the configuration file.
 #
 ruby_block 'delete_unsupported_use_geoip' do
