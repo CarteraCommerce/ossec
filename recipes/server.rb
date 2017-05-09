@@ -158,12 +158,12 @@ end
 # and distribute the keys to the clients.
 cron 'chef-client' do
   minute '50'
-  command '/usr/bin/chef-client'
+  command '/usr/bin/chef-client > /var/log/chef-client.log 2>&1'
 end
 
 cron 'distribute-ossec-keys' do
   minute '0'
-  command '/usr/local/bin/dist-ossec-keys.sh'
+  command '/usr/local/bin/dist-ossec-keys.sh > /var/ossec/log/dist-ossec-keys.log 2>&1'
   only_if { ::File.exist?("#{node['ossec']['dir']}/etc/client.keys") }
 end
 
