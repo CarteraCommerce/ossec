@@ -154,6 +154,13 @@ file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
   }
 end
 
+# Cron jobs to run chef-client, which will create keys for new clients
+# and distribute the keys to the clients.
+cron 'chef-client' do
+  minute '50'
+  command '/usr/bin/chef-client'
+end
+
 cron 'distribute-ossec-keys' do
   minute '0'
   command '/usr/local/bin/dist-ossec-keys.sh'
