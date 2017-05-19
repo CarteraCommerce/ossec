@@ -19,14 +19,17 @@ end
 include_recipe 'ossec::install_server'
 
 ssh_hosts = []
+server_recipe = node['ossec']['server_recipe']
 
 # Search for nodes that have any ossec attibutes
 search_string = 'ossec:[* TO *]'
+# and that are in the same environment (not using policy files)
+search_string << " AND chef_environment:#{node['ossec']['server_env']}" unless node['chef_environment'].nil? and node['ossec']['server_env']
 # and that are in the same policy group as this OSSEC server
 search_string << " AND policy_group:#{node['policy_group']}" unless node['policy_group'].nil?
 # and that aren't using the OSSEC server policy (i.e. they aren't OSSEC servers)
-# node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC servers
-search_string << " AND (-policy_name:#{node['ossec']['server_policy']})" unless node['ossec']['server_policy'].nil?
+# node['ossec']['server_recipe'] is an attribute that points to the recipe used by the OSSEC servers
+search_string << " AND (-run_list:\"recipe[#{server_recipe}]\")" unless node['ossec']['server_recipe'].nil?
 # and that aren't this node (the node that's running this recipe from chef-client)
 search_string << " AND (-fqdn:#{node['fqdn']})"
 
