@@ -29,7 +29,7 @@ search_string << " AND chef_environment:#{node['ossec']['server_env']}" unless n
 search_string << " AND policy_group:#{node['policy_group']}" unless node['policy_group'].nil?
 # and that aren't using the OSSEC server policy (i.e. they aren't OSSEC servers)
 # node['ossec']['server_recipe'] is an attribute that points to the recipe used by the OSSEC servers
-search_string << " AND -run_list:recipe[#{server_recipe}]" unless node['ossec']['server_recipe'].nil?
+search_string << " AND -run_list:#{server_recipe}" unless node['ossec']['server_recipe'].nil?
 # and that aren't this node (the node that's running this recipe from chef-client)
 search_string << " AND -fqdn:#{node['fqdn']}"
 
