@@ -33,6 +33,8 @@ search_string << " AND -run_list:recipe[#{server_recipe}]" unless node['ossec'][
 # and that aren't this node (the node that's running this recipe from chef-client)
 search_string << " AND -fqdn:#{node['fqdn']}"
 
+log "search_string #{search_string}"
+
 search(:node, search_string) do |n|
   # Create a list of the agent IP Addresses
   # This list is inserted into dist-ossec-keys.sh, which distributes the agent keys
