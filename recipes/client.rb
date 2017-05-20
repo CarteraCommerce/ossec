@@ -31,13 +31,23 @@ end
   end
 end
 
-server_recipe = node['ossec']['server_recipe']
+# Search for nodes that are OSSEC Servers
+unless node['ossec']['server_policy'].nil?
+  # If using policy files
+  # Look for nodes that use the OSSEC Server policy
+  # node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC servers
+  search_string = "policy_name:#{node['ossec']['server_policy']}"
+else
+  # If using environment files and roles
+  unless node['ossec']['server_role'].nil? or node['ossec']['server_env'].nil?
+    # Look for nodes that use the OSSEC Server Role
+    search_string = "role:#{node['ossec']['server_role']}"
+    # and match the environment
+    search_string << " AND chef_environment:#{node['ossec']['server_env']}"
+  end
+end
 
-# Search for nodes that are OSSEC Servers by looking for nodes that use the OSSEC Server policy
-# node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC servers
-search_string = "run_list:\"recipe[#{server_recipe}]\"" unless node['ossec']['server_recipe'].nil?
-
-if Chef::Config.policy_name == node['ossec']['server_policy']
+if node.run_list.roles.include?(node['ossec']['server_role']) or Chef::Config.policy_name == node['ossec']['server_policy']
   # The node running this recipe is an OSSEC Server
   ossec_server << node['ipaddress']
 else
