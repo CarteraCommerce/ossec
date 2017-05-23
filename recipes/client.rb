@@ -31,21 +31,19 @@ end
   end
 end
 
+#
 # Search for nodes that are OSSEC Servers
-unless node['ossec']['server_policy'].nil?
-  # If using policy files
-  # Look for nodes that use the OSSEC Server policy
-  # node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC servers
-  search_string = "policy_name:#{node['ossec']['server_policy']}"
-else
-  # If using environment files and roles
-  unless node['ossec']['server_role'].nil? or node['ossec']['server_env'].nil?
-    # Look for nodes that use the OSSEC Server Role
-    search_string = "role:#{node['ossec']['server_role']}"
-    # and match the environment
-    search_string << " AND chef_environment:#{node['ossec']['server_env']}"
-  end
-end
+#
+# Search for nodes that are in the same environment or policy_group as this OSSEC client
+search_string = "chef_environment:#{node['chef_environment']}"
+
+# Search for nodes that are using the OSSEC Server Role
+# node['ossec']['server_role'] is an attribute that points to Chef Role used by the OSSEC Servers
+search_string << " AND role:#{node['ossec']['server_role']}" unless node['ossec']['server_role'].nil?
+
+# Search for nodes that are using the OSSEC server policy (i.e. they aren't OSSEC servers)
+# node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC Servers
+search_string << " AND policy_name:#{node['ossec']['server_policy']}" unless node['ossec']['server_policy'].nil?
 
 if node.run_list.roles.include?(node['ossec']['server_role']) or Chef::Config.policy_name == node['ossec']['server_policy']
   # The node running this recipe is an OSSEC Server

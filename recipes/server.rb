@@ -23,24 +23,22 @@ ssh_hosts = []
 # Search for nodes that have any ossec attibutes
 search_string = 'ossec:[* TO *]'
 
-# if using environment files and roles
-unless node['chef_environment'].nil? or node['ossec']['server_env']
-  # and that are in the same environment (not using policy files)
-  search_string << " AND chef_environment:#{node['ossec']['server_env']}"
-  search_string << " AND NOT role:#{node['ossec']['server_role']}"
-end
+# Search for nodes that use the same server_site as this OSSEC server
+search_string << " AND server_site:#{node['server_site']}" unless node['server_site'].nil?
 
-# if using policy files
-unless node['policy_group'].nil? or node['ossec']['server_policy'].nil?
-  # and that are in the same policy group as this OSSEC server
-  search_string << " AND policy_group:#{node['policy_group']}" unless node['policy_group'].nil?
-  # and that aren't using the OSSEC server policy (i.e. they aren't OSSEC servers)
-  # node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC servers
-  search_string << " AND (-policy_name:#{node['ossec']['server_policy']})"
-end
+# Search for nodes that are in the same environment or policy_group as this OSSEC server
+search_string << " AND chef_environment:#{node['chef_environment']}"
+
+# Search for nodes that aren't using the OSSEC Server Role
+# node['ossec']['server_role'] is an attribute that points to Chef Role used by the OSSEC Servers
+search_string << " AND (-role:#{node['ossec']['server_role']})" unless node['ossec']['server_role'].nil?
+
+# Search for nodes that aren't using the OSSEC server policy (i.e. they aren't OSSEC servers)
+# node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC Servers
+search_string << " AND (-policy_name:#{node['ossec']['server_policy']})" unless node['ossec']['server_policy'].nil?
 
 # and that aren't this node (the node that's running this recipe from chef-client)
-search_string << " AND -fqdn:#{node['fqdn']}"
+search_string << " AND (-fqdn:#{node['fqdn']})"
 
 log "search_string #{search_string}"
 
