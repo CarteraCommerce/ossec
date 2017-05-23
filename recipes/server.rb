@@ -47,6 +47,7 @@ search(:node, search_string) do |n|
   # Create a list of the agent IP Addresses
   # This list is inserted into dist-ossec-keys.sh, which distributes the agent keys
   ssh_hosts << n['ipaddress'] if n['keys']
+  log "Client IP: #{n['ipaddress']}"
 
   # Create the agent key
   execute "#{node['ossec']['agent_manager']} -a --ip #{n['ipaddress']} -n #{n['fqdn'][0..31]}" do

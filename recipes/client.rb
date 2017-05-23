@@ -46,6 +46,8 @@ search_string << " AND role:#{node['ossec']['server_role']}" unless node['ossec'
 # node['ossec']['server_policy'] is an attribute that points to the policy used by the OSSEC Servers
 search_string << " AND policy_name:#{node['ossec']['server_policy']}" unless node['ossec']['server_policy'].nil?
 
+log "search_string #{search_string}"
+
 if node.run_list.roles.include?(node['ossec']['server_role']) or Chef::Config.policy_name == node['ossec']['server_policy']
   # The node running this recipe is an OSSEC Server
   ossec_server << node['ipaddress']
@@ -53,6 +55,7 @@ else
   search(:node, search_string) do |n|
     # Create a list of OSSEC Server IP Addresses
     ossec_server << n['ipaddress']
+    log "Server IP: #{n['ipaddress']}"
   end
 end
 
