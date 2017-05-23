@@ -27,7 +27,8 @@ search_string = 'ossec:[* TO *]'
 search_string << " AND server_site:#{node['server_site']}" unless node['server_site'].nil?
 
 # Search for nodes that are in the same environment or policy_group as this OSSEC server
-search_string << " AND chef_environment:#{node['chef_environment']}"
+# NOTE - node.chef_environment isn't an attribute, chef_environment is a method in the Chef::Node object
+search_string << " AND chef_environment:#{node.chef_environment}" unless node.chef_environment.nil?
 
 # Search for nodes that aren't using the OSSEC Server Role
 # node['ossec']['server_role'] is an attribute that points to Chef Role used by the OSSEC Servers

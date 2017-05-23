@@ -35,7 +35,8 @@ end
 # Search for nodes that are OSSEC Servers
 #
 # Search for nodes that are in the same environment or policy_group as this OSSEC client
-search_string = "chef_environment:#{node['chef_environment']}"
+# NOTE - node.chef_environment isn't an attribute, chef_environment is a method in the Chef::Node object
+search_string = "chef_environment:#{node.chef_environment}"
 
 # Search for nodes that are using the OSSEC Server Role
 # node['ossec']['server_role'] is an attribute that points to Chef Role used by the OSSEC Servers
