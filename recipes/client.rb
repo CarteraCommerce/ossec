@@ -55,8 +55,14 @@ else
 end
 
 # Set the agent_server_ip attribute to the first OSSEC Server in the list ossec_server
-# This will later get inserted into the agent's configuration file
+# This SHOULD later get inserted into the agent's configuration file via the following line
+# in attributes/default.rb:
+# default['ossec']['conf']['agent']['client']['server-ip'] = node['ossec']['agent_server_ip']
+# But due to Chef's awful attribute precedence mess, this isn't working. Someone with more
+# time on their hands can fix it later.
 node.set['ossec']['agent_server_ip'] = ossec_server.first
+# For now, this hack works:
+node.set['ossec']['conf']['agent']['client']['server-ip'] = ossec_server.first 
 
 include_recipe 'ossec::install_agent'
 
@@ -136,6 +142,8 @@ ruby_block 'ossec install_type' do # ~FC014
 end
 
 # Gyoku renders the XML.
+# See the [Gyoku site](https://github.com/savonrb/gyoku) for details on how this works.
+# Also see libraries/helpers.rb
 chef_gem 'gyoku' do
   compile_time false if respond_to?(:compile_time)
 end

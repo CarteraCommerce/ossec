@@ -129,6 +129,8 @@ ruby_block 'ossec install_type' do # ~FC014
 end
 
 # Gyoku renders the XML.
+# See the [Gyoku site](https://github.com/savonrb/gyoku) for details on how this works.
+# Also see libraries/helpers.rb
 chef_gem 'gyoku' do
   compile_time false if respond_to?(:compile_time)
 end
