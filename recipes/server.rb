@@ -4,8 +4,6 @@
 #
 # Copyright (c) 2016 Cartera Commerce, Inc., All Rights Reserved.
 
-include_recipe 'yum-epel'
-
 iptables_rule 'iptables_ossec' do
   action :enable
 end
@@ -85,17 +83,6 @@ template "#{node['ossec']['dir']}/.ssh/id_rsa" do
   group 'ossec'
   mode '0600'
   variables(key: ossec_key['privkey'])
-end
-
-#
-# Remove the use_geoip attribute, so that it doesn't get inserted into
-# the ossec.conf configuration file. OSSEC fails to start if it's
-# in the configuration file.
-#
-ruby_block 'delete_unsupported_use_geoip' do
-  block do
-    node.rm('ossec', 'conf', 'server', 'alerts', 'use_geoip')
-  end
 end
 
 # Disable the System V init that's installed by the RPM

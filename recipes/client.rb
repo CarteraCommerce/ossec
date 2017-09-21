@@ -19,8 +19,6 @@
 
 ossec_server = []
 
-include_recipe 'yum-epel'
-
 iptables_rule 'iptables_ossec' do
   action :enable
 end
@@ -55,13 +53,6 @@ else
 end
 
 # Set the agent_server_ip attribute to the first OSSEC Server in the list ossec_server
-# This SHOULD later get inserted into the agent's configuration file via the following line
-# in attributes/default.rb:
-# default['ossec']['conf']['agent']['client']['server-ip'] = node['ossec']['agent_server_ip']
-# But due to Chef's awful attribute precedence mess, this isn't working. Someone with more
-# time on their hands can fix it later.
-node.set['ossec']['agent_server_ip'] = ossec_server.first
-# For now, this hack works:
 node.set['ossec']['conf']['agent']['client']['server-ip'] = ossec_server.first 
 
 include_recipe 'ossec::install_agent'
